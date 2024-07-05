@@ -36,11 +36,11 @@ The datasets used for fine-tuning consist of 10000 samples of python code comple
 1. **Prompt Format**:
    To help the model quickly understand and differentiate between system prompt, instruction, inputs, and answers, samples needs to be formatted as shown in the figure below. This structured format enables the model to learn more quickly, significantly reducing the number of samples required for it to understand these distinctions on its own compared to an unformatted approach.
 
-[!alt text](images/prompt_format.png)
+![alt text](images/prompt_format.png)
 
 2. **Distribution of Sequence Length**:finding the distribution of sequence lengths to determine the maximum sequence length.From the Figure max length is 5714, it is not practicle for small resources therefore 90 percentile length is taken, which is close to 512 is taken as max length.
 
-[!alt text](images/sequence_len's.png)
+![alt text](images/sequence_len's.png)
 
 3. **Tokenization, Padding and Batching**: It is done automatically by SFTTrainer
 
@@ -59,7 +59,7 @@ To optimize the fine-tuning process on a single GPU, several techniques are empl
 
 The training process demonstrated that the quantized LLAMA2 model with LoRA layers achieves performance close to that of the full-precision model. Training loss and validation loss were monitored throughout training to ensure the model's effectiveness. The reduced memory footprint and computational requirements facilitated efficient training on a single GPU.
 
-[!alt text](images/Trainingresult.png)
+![alt text](images/Trainingresult.png)
 
 ## Evaluation Using CodeBLEU
 
