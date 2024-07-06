@@ -4,13 +4,23 @@
 
 ## Introduction
 
-In recent years, large language models (LLMs) have exhibited remarkable capabilities across various tasks. However, their increasing size, memory consumption, and extended training times present significant challenges, particularly for those with limited computational resources. This thesis explores the application of the QLORA technique to fine-tune the LLAMA2 model with significantly fewer trainable parameters, aiming for efficient training on a single GPU. By quantizing the model to 4-bit precision and introducing low-rank adapters (LoRA) in the linear layers, we achieve performance comparable to the original full-precision model. The model is evaluated using the codeBLEU metric on a dataset of chat completions for coding tasks, demonstrating the efficacy of our approach.
+In recent years, large language models (LLMs) have exhibited remarkable capabilities across various tasks. However, their increasing size, memory consumption, and extended training times present significant challenges, particularly for those with limited computational resources.Fortunately, there exists a low dimension reparameterization that is as effective for fine-tuning as the full parameter space empirically shown in the paper **“Intrinsic Dimensionality Explains the Effectiveness of Language Model Fine-Tuning.”** This project explores the application of the QLORA technique to fine-tune the LLAMA2-7b model with significantly fewer trainable parameters, aiming for efficient training on a single GPU. By quantizing the model to 4-bit precision and introducing low-rank adapters (LoRA) in the linear layers, we achieve performance comparable to the original full-precision model. The model is evaluated using the codeBLEU metric on a dataset of code completions for coding tasks, demonstrating the efficacy of our approach.
 
 ---
 
 ## Why Fine-Tuning with QLORA Technique
 
-Fine-tuning large language models is crucial for adapting them to specific tasks and domains. Traditional fine-tuning methods require loading the entire model into memory and updating its parameters, which is computationally expensive and often infeasible on medium-sized GPU resources. The QLORA technique addresses these challenges by quantizing the model's weights to lower precision and introducing low-rank adapters (LoRA) to the linear layers. This approach reduces the model size and the number of trainable parameters, making fine-tuning feasible on limited hardware while maintaining performance
+ Fine-tuning large language models is crucial for adapting them to specific tasks and domains. Traditional fine-tuning methods require loading the entire model into memory and updating its parameters, which is computationally expensive and often infeasible on medium-sized GPU resources. For instance, a 1B parameter model takes 4GB of GPU RAM at 32-bit precision. However, training this model requires memory for parameters, gradients, optimizer states, and activations, totaling about 20GB of GPU RAM, which far exceeds the capacity of most single GPUs. 
+
+**Model Parameter:** 4 bytes per parameter  
+**Gradients:** 4 bytes per parameter  
+**ADAM Optimizer:** 8 bytes per parameter (2 states)
+**Activations and temp memory:**  8 bytes per parameter (variable size) 
+**Total:** 4 bytes parameter (model) + 20 extra bytes per paramter (training)
+So, the memory needed to train is **~5X** the memory needed to store the model.
+
+The QLORA technique addresses these challenges by quantizing the model's weights to lower precision and introducing low-rank adapters (LoRA) to the linear layers. This approach reduces the model size and the number of trainable parameters, making fine-tuning feasible on limited hardware while maintaining performance.
+
 
 ## Quantization Technique and LoRA
 
@@ -27,16 +37,20 @@ Fine-tuning large language models is crucial for adapting them to specific tasks
 Low-Rank Adaptation (LoRA) is a technique that inserts trainable low-rank matrices into the transformer linear layers of the model. These adapters allow the model to learn task-specific adjustments without modifying the original weights, which remain frozen. The PEFT library facilitates the integration of LoRA into the LLAMA2 model, providing a flexible and efficient mechanism for fine-tuning.
 
 
+**Meta-LLaMA/Llama-2-7b**, originally 28GB in size at 32-bit precision, requires an additional 140GB of RAM for traditional fine-tuning methods, which is impractical on medium-sized GPUs. After quantization and applying LORA to the model, its size reduces to 4GB. The number of trainable parameters constitutes only 0.15% of the total, as depicted in the figure below. Moreover, the model now only requires an additional 20GB of RAM, totaling 24GB, making it feasible to run on a single GPU.This shows the effectiveness of QLORA in improving efficiency and resource utilization.
+
 ![alt text](images/model_size.png)
 
 ## Preprocessing the Datasets
 
 The datasets used for fine-tuning consist of 10000 samples of python code completions related to coding tasks. The preprocessing pipeline involves several key steps:
 
-1. **Prompt Format**:
-   To help the model quickly understand and differentiate between system prompt, instruction, inputs, and answers, samples needs to be formatted as shown in the figure below. This structured format enables the model to learn more quickly, significantly reducing the number of samples required for it to understand these distinctions on its own compared to an unformatted approach.
+1. **Prompt Format**:To help the model quickly understand and differentiate between system prompt, instruction, inputs, and answers, samples needs to be formatted as shown in the figure below. This structured format enables the model to learn more quickly, significantly reducing the number of samples required for it to understand these distinctions on its own compared to an unformatted approach.
 
 ![alt text](images/prompt_format.png)
+
+Some random samples form the Dataset
+![alt text](images/Samples.png)
 
 2. **Distribution of Sequence Length**:finding the distribution of sequence lengths to determine the maximum sequence length.From the Figure max length is 5714, it is not practicle for small resources therefore 90 percentile length is taken, which is close to 512 is taken as max length.
 
@@ -57,16 +71,16 @@ To optimize the fine-tuning process on a single GPU, several techniques are empl
 
 ## Results of Training
 
-The training process demonstrated that the quantized LLAMA2 model with LoRA layers achieves performance close to that of the full-precision model. Training loss and validation loss were monitored throughout training to ensure the model's effectiveness. The reduced memory footprint and computational requirements facilitated efficient training on a single GPU.
+Throughout the training process, both training loss and validation loss were monitored to ensure the model's effectiveness. The results, as shown in the figure below, indicate a decrease in both training and validation loss over steps, suggesting that the model is neither underfitting nor overfitting but is well-generalized using the QLORA technique. The quantized LLAMA2 model with LoRA layers demonstrated performance close to that of the full-precision model.
 
 ![alt text](images/Trainingresult.png)
 
 ## Evaluation Using CodeBLEU
 
-The fine-tuned model's performance was evaluated using the codeBLEU metric, which assesses the quality of generated code completions based on factors like syntax correctness and semantic relevance. The results indicate that the QLORA-enhanced model performs competitively, showcasing its potential for practical applications in code generation tasks.
+The fine-tuned model's performance was evaluated using the codeBLEU metric, which assesses the quality of generated code completions based on factors like n-gram match, weighted n-gram match, syntax match and dataflow match. The codeBLEU score shown in the figure indicate that the QLORA-enhanced model performs competitively, showcasing its potential for practical applications in various tasks.
 
 ![alt text](images/codebleu_score.png)
 
 ## Conclusion
 
-This research demonstrates that the QLORA technique, combining model quantization with low-rank adaptation, offers a viable solution for fine-tuning large language models on limited hardware resources. By significantly reducing the number of trainable parameters and memory requirements, this approach enables efficient training while maintaining high performance. The successful application of QLORA to the LLAMA2 model for code completion tasks underscores its effectiveness and potential for broader adoption in NLP tasks requiring fine-tuning on specialized datasets.
+This project demonstrates that the QLORA technique-combining model quantization with low-rank adaptation, offers a viable solution for fine-tuning large language models on limited hardware resources. By significantly reducing the number of trainable parameters and memory requirements, this approach enables efficient training while maintaining high performance. The successful application of QLORA to the LLAMA2-7B model for code completion tasks shows its effectiveness and potential for broader adoption in NLP tasks requiring fine-tuning on specialized datasets.
