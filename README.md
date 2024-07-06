@@ -21,11 +21,11 @@ In recent years, large language models (LLMs) have exhibited remarkable capabili
 
 Fine-tuning large language models is crucial for adapting them to specific tasks and domains. Traditional fine-tuning methods require loading the entire model into memory and updating its parameters, which is computationally expensive and often infeasible on medium-sized GPU resources. For instance, a 1B parameter model takes 4GB of GPU RAM at 32-bit precision. However, training this model requires memory for parameters, gradients, optimizer states, and activations, totaling about 20GB of GPU RAM, which far exceeds the capacity of most single GPUs.
 
-**Model Parameter:** 4 bytes per parameter.
-**Gradients:** 4 bytes per parameter. 
-**ADAM Optimizer:** 8 bytes per parameter (2 states).
-**Activations and temp memory:** 8 bytes per parameter (variable size).
-**Total:** 4 bytes parameter (model) + 20 extra bytes per paramter (training).
+**Model Parameter:** 4 bytes per parameter 
+**Gradients:** 4 bytes per parameter 
+**ADAM Optimizer:** 8 bytes per parameter (2 states) 
+**Activations and temp memory:** 8 bytes per parameter (variable size) 
+**Total:** 4 bytes parameter (model) + 20 extra bytes per paramter (training) 
 So, the memory needed to train is **~5X** the memory needed to store the model.
 
 The QLORA technique addresses these challenges by quantizing the model's weights to lower precision and introducing low-rank adapters (LoRA) to the linear layers. This approach reduces the model size and the number of trainable parameters, making fine-tuning feasible on limited hardware while maintaining performance.
