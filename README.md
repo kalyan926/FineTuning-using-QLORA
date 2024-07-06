@@ -19,14 +19,14 @@ In recent years, large language models (LLMs) have exhibited remarkable capabili
 
 ## Why Fine-Tuning with QLORA Technique
 
-Fine-tuning large language models is crucial for adapting them to specific tasks and domains. Traditional fine-tuning methods require loading the entire model into memory and updating its parameters, which is computationally expensive and often infeasible on medium-sized GPU resources. For instance, a 1B parameter model takes 4GB of GPU RAM at 32-bit precision. However, training this model requires memory for parameters, gradients, optimizer states, activations and temp memory, totaling about ~20GB of GPU RAM, which far exceeds the capacity of most single GPUs.
+Fine-tuning large language models is crucial for adapting them to specific tasks and domains. Traditional fine-tuning methods require loading the entire model into memory and updating its parameters, which is computationally expensive and often infeasible on medium-sized GPU resources. For instance, a 1B parameter model takes 4GB of memory at 32-bit precision and training this model requires memory for parameters, gradients, optimizer states, activations and temp memory, totaling about ~24GB of GPU RAM, which far exceeds the capacity of most single GPUs.
 
 **Model Parameter:** 4 bytes per parameter\
 **Gradients:** 4 bytes per parameter\
 **ADAM Optimizer:** 8 bytes per parameter (2 states)\
 **Activations and temp memory:** 8 bytes per parameter (variable size)\
 **Total:** 4 bytes parameter (model) + 20 extra bytes per paramter (training)\
-So, the memory needed to train is **~5X** the memory needed to store the model.
+So, the memory needed to train is additionally **~5X** the memory needed to store the model.
 
 The QLORA technique addresses these challenges by quantizing the model's weights to lower precision and introducing low-rank adapters (LoRA) to the linear layers. This approach reduces the model size and the number of trainable parameters, making fine-tuning feasible on limited hardware while maintaining performance.
 
@@ -44,7 +44,7 @@ The QLORA technique addresses these challenges by quantizing the model's weights
 
 Low-Rank Adaptation (LoRA) is a technique that inserts trainable low-rank matrices into the transformer linear layers of the model. These adapters allow the model to learn task-specific adjustments without modifying the original weights, which remain frozen. The PEFT library facilitates the integration of LoRA into the LLAMA2 model, providing a flexible and efficient mechanism for fine-tuning.
 
-**Meta-LLaMA/Llama-2-7b**, originally 28GB in size at 32-bit precision, requires an additional 140GB of RAM for traditional fine-tuning methods, which is impractical on medium-sized GPUs. After quantization and applying LORA to the model, its size reduces to 4GB. The number of trainable parameters constitutes only 0.15% of the total, as depicted in the figure below. Moreover, the model now only requires an additional 20GB of RAM, totaling 24GB, making it feasible to run on a single GPU.This shows the effectiveness of QLORA in improving efficiency and resource utilization.
+**Meta-LLaMA/Llama-2-7b**, originally 28GB in size at 32-bit precision, requires an additional 140GB of RAM for traditional fine-tuning methods totaling 168GB, which is impractical on medium-sized GPUs.After quantization and applying LORA to the model, its size reduces from 28GB to 4GB and the number of trainable parameters constitutes only 0.15% of the total, as depicted in the figure below. Which implies 0.105 billion(7*0.15%) trainable parameters form LORA layers and they contribute additionally 2.1GB (0.105*20) assuming only 0.15% of activations are stored using gradient checkpoint(otherwise it would take 57.26 GB (0.105*12+7*8)),totaling 6.1GB only during training making it feasible to run on a single GPU.This shows the effectiveness of QLORA in improving efficiency and resource utilization.
 
 ![alt text](images/model_size.png)
 
