@@ -19,7 +19,7 @@ In recent years, large language models (LLMs) have exhibited remarkable capabili
 
 ## Why Fine-Tuning with QLORA Technique
 
-Fine-tuning large language models is crucial for adapting them to specific tasks and domains. Traditional fine-tuning methods require loading the entire model into memory and updating its parameters, which is computationally expensive and often infeasible on medium-sized GPU resources. For instance, a 1B parameter model takes 4GB of GPU RAM at 32-bit precision. However, training this model requires memory for parameters, gradients, optimizer states, and activations, totaling about 20GB of GPU RAM, which far exceeds the capacity of most single GPUs.
+Fine-tuning large language models is crucial for adapting them to specific tasks and domains. Traditional fine-tuning methods require loading the entire model into memory and updating its parameters, which is computationally expensive and often infeasible on medium-sized GPU resources. For instance, a 1B parameter model takes 4GB of GPU RAM at 32-bit precision. However, training this model requires memory for parameters, gradients, optimizer states, activations and temp memory, totaling about ~20GB of GPU RAM, which far exceeds the capacity of most single GPUs.
 
 **Model Parameter:** 4 bytes per parameter\
 **Gradients:** 4 bytes per parameter\
