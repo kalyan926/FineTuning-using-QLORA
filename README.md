@@ -24,8 +24,11 @@ Fine-tuning large language models is crucial for adapting them to specific tasks
 **Model Parameter:** 4 bytes per parameter  
 **Gradients:** 4 bytes per parameter  
 **ADAM Optimizer:** 8 bytes per parameter (2 states)
+
 **Activations and temp memory:** 8 bytes per parameter (variable size)
+
 **Total:** 4 bytes parameter (model) + 20 extra bytes per paramter (training)
+
 So, the memory needed to train is **~5X** the memory needed to store the model.
 
 The QLORA technique addresses these challenges by quantizing the model's weights to lower precision and introducing low-rank adapters (LoRA) to the linear layers. This approach reduces the model size and the number of trainable parameters, making fine-tuning feasible on limited hardware while maintaining performance.
