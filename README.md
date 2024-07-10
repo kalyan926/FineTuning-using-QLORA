@@ -42,9 +42,9 @@ The QLORA technique addresses these challenges by quantizing the model's weights
 
 ### Low-Rank Adaptation (LoRA)
 
-Low-Rank Adaptation (LoRA) is a technique that inserts trainable low-rank matrices into the transformer linear layers of the model. These adapters allow the model to learn task-specific adjustments without modifying the original weights, which remain frozen. The PEFT library facilitates the integration of LoRA into the LLAMA2 model, providing a flexible and efficient mechanism for fine-tuning.
+Low-Rank Adaptation (LoRA) is a technique that inserts trainable low-rank matrices into the transformer linear layers **(["q_proj", "k_proj", "v_proj", "o_proj","gate_proj", "up_proj","down_proj"])** of the model. These adapters allow the model to learn task-specific adjustments without modifying the original weights, which remain frozen. The PEFT library facilitates the integration of LoRA into the LLAMA2 model, providing a flexible and efficient mechanism for fine-tuning.
 
-**Meta-LLaMA/Llama-2-7b**, originally 28GB in size at 32-bit precision, requires an additional 140GB of RAM for traditional fine-tuning methods totaling 168GB, which is impractical on medium-sized GPUs.After quantization and applying LORA to the model, its size reduces from 28GB to 4.03GB and the number of trainable parameters constitutes only 0.15% of the total, as depicted in the figure below. Which implies 0.105 billion(7x0.15%) trainable parameters form LORA layers and they contribute additionally ~2.1GB (0.105x20) assuming only 0.15% of activations are stored using gradient checkpoint(otherwise it would take ~57.26 GB (0.105x12+7x8)),totaling 6.1GB only during training making it feasible to run on a single GPU.This shows the effectiveness of QLORA in improving efficiency and resource utilization.
+**Meta-LLaMA/Llama-2-7b**, originally 28GB in size at 32-bit precision, requires an additional 140GB of RAM for traditional fine-tuning methods totaling 168GB, which is impractical on medium-sized GPUs.After quantization and applying LORA to the model, its size reduces from 28GB to 4.03GB and the number of trainable parameters constitutes only 0.15% of the total, as depicted in the figure below. Which implies 0.105 billion(7x0.15%) trainable parameters form LORA layers and they contribute additionally ~2.1GB (0.105x20) assuming only 0.15% of activations are stored using gradient checkpoint(otherwise it would take ~57.26 GB (0.105x12+7x8)),totaling ~6.1GB during training and this will increase with size of sequence length and batch size. Assuming sequence length is not too large and batch size which can be adjusted along with gradient accumulation steps depending on maximum RAM size of GPU it is feasible to finetune a model with QLORA on a single GPU.This shows the effectiveness of QLORA in improving efficiency and resource utilization.
 
 ![alt text](images/model_size.png)
 
@@ -75,6 +75,29 @@ To optimize the fine-tuning process on a single GPU, several techniques are empl
 4. **Paged Optimizers**: These optimizers manage memory more efficiently by swapping in and out the required parameter segments.
 5. **Gradient Clipping by Normalization**: Normalizing and clipping gradients to prevent exploding gradients, ensuring stable and reliable training
 6. **Learning Rate Scheduler**: Dynamically adjusts the learning rate during training to ensure optimal convergence.
+
+Training arguments of the model
+
+`training_arguments = TrainingArguments(
+    output_dir="/content/output",
+    num_train_epochs=1,
+    per_device_train_batch_size=8,
+    gradient_accumulation_steps=32,
+    gradient_checkpointing = True,
+    optim="paged_adamw_32bit",
+    save_steps=15,
+    eval_steps=1,
+    logging_steps=1,
+    learning_rate=2e-3,
+    weight_decay=0.001,
+    fp16=False,
+    bf16=False,
+    max_grad_norm=1,
+    warmup_ratio=0.03,
+    evaluation_strategy="steps",
+    group_by_length=True,
+    lr_scheduler_type="cosine"
+)`
 
 ## Results of Training
 
