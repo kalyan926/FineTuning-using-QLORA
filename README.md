@@ -76,7 +76,7 @@ To optimize the fine-tuning process on a single GPU, several techniques are empl
 5. **Gradient Clipping by Normalization**: Normalizing and clipping gradients to prevent exploding gradients, ensuring stable and reliable training
 6. **Learning Rate Scheduler**: Dynamically adjusts the learning rate during training to ensure optimal convergence.
 
-**Training arguments of the model**
+**Training arguments of the model after tweaking**
 
 `training_arguments = TrainingArguments(
     output_dir="/content/output",
